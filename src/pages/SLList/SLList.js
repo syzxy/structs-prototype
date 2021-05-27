@@ -5,55 +5,50 @@ import { sLList } from "../../static/data/sLListData";
 import Grid from "../../components/Grid/Grid";
 import styles from "./SLList.module.css";
 import Button from "../../components/Button/Button";
+import { motion, AnimatePresence } from "framer-motion";
+import { v4 as uuidv4 } from "uuid";
 
 export default function SLList() {
-  /** vv ignore these for now vv **/
-  const ROW = 1;
-  const COL = 20;
-  const emptyGrid = Array.from(Array(ROW), (r) =>
-    Array.from(Array(COL), (c) => null)
-  );
-
-  const [grid, setGrid] = useState(emptyGrid);
+  // const [initialList, setInitialList] = useState();
   const [list, setList] = useState(sLList);
-
-  useEffect(() => {
-    const newGrid = [...grid];
-    const newList = Array(2 * list.length - 1);
-
-    // Update the grid by populating linked list elements
-    newList[0] = list[0];
-    for (let i = 1, j = 1; i < list.length; i++) {
-      newList[j++] = Infinity; // sentinel for an arrow
-      newList[j++] = list[i]; // list element
-    }
-    newGrid[0] = newList;
-    setGrid(newGrid);
-  }, [list]);
-  /** ^^ ignore these for now ^^ **/
-
   const [value, setValue] = useState("");
+
+  // useEffect(() => {
+  // }, []);
 
   const appendNode = () => {
     if (!value || isNaN(value)) {
       alert("Not a valid number!");
     } else {
-      setList([...list, +value]);
+      setList([
+        ...list,
+        { value: Infinity, id: uuidv4() },
+        { value: +value, id: uuidv4() },
+      ]);
     }
+  };
+
+  const deleteNode = (index) => {
+    console.log("deleting ", list[index]);
+    let newList = list.filter((_, i) => i !== index && i !== index + 1);
+    setList(newList);
   };
 
   return (
     <div className={styles.canvas}>
       <Grid>
-        {grid.map((row, i) =>
-          row.map((cell, j) =>
-            cell < Infinity ? (
-              <SLLNode key={`${i}${j}`}>{cell}</SLLNode>
-            ) : (
-              <Arrow key={`${i}${j}`}></Arrow>
-            )
-          )
-        )}
+        <AnimatePresence>
+          {list &&
+            list.map((e, i) =>
+              e.value < Infinity ? (
+                <SLLNode key={e.id} onDeletNode={() => deleteNode(i)}>
+                  {e.value}
+                </SLLNode>
+              ) : (
+                <Arrow key={e.id} />
+              )
+            )}
+        </AnimatePresence>
       </Grid>
       <input
         type="text"
